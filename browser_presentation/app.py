@@ -76,7 +76,8 @@ if query:
             with st.status("🔌 Checking connectivity...", expanded=False) as s:
                 ok = True
                 try:
-                    r = requests.get("https://geoservice.dlr.de/eoc/ogc/stac/v1", timeout=5)
+                    #r = requests.get("https://geoservice.dlr.de/eoc/ogc/stac/v1", timeout=5)
+                    r = requests.get("https://browser.stac.dataspace.copernicus.eu/collections/cop-dem-glo-30-dged-cog", timeout=5)
                     st.write("STAC reachable " if r.ok else f"STAC status {r.status_code}")
                 except Exception as e:
                     ok = False
