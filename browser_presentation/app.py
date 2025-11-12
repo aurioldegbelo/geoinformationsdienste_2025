@@ -21,7 +21,7 @@ with st.sidebar:
     st.subheader("LLM Settings")
     
     api_base = st.text_input("API Base", value=os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1"))
-    api_key = st.text_input("API Key", type="password", value=os.getenv("OPENAI_API_KEY", "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"))
+    api_key = st.text_input("API Key", type="password", value=os.getenv("OPENAI_API_KEY", ""))
    # model_name = st.text_input("Model", value=os.getenv("OPENAI_MODEL", "llama-3.3-70b-instruct"))
     model_name = st.text_input("Model", value=os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
     temperature = st.slider("Temperature", 0.0, 1.0, 0.0, 0.1) # controls deterministic vs. random
@@ -31,14 +31,24 @@ with st.sidebar:
 os.environ["OPENAI_API_BASE"] = api_base
 os.environ["OPENAI_API_KEY"] = api_key
 
+
+if "current_state" not in st.session_state:
+    st.session_state.current_state = "get_user_query"
+    st.session_state.last_bbox = None
+    st.session_state.last_bbox_name = None
+    st.session_state.last_params = None
+    st.session_state.last_query = None
+
+
 # Build LLM
 llm = make_llm(model=model_name, temperature=temperature)
 
 # Chat input
 query = st.chat_input("Ask for data (e.g., 'Find LST data for the summer 2018 for the two largest cities in Germany.')")
 
+
 if query:
-    #st.session_state.chat.append({"role": "user", "content": query})
+   
     with st.chat_message("user"):
         st.markdown(query)
 
@@ -46,25 +56,37 @@ if query:
         t1 = time.time()
         collections = get_stac_collections()
         print("Parameter extraction started...")
+
         params = extract_search_params(query, collections, llm)
-        print("parameter extracted: ", params)
         t2 = time.time()
-        with st.expander("Debug: extracted parameters", expanded=True):
-            st.json(params)
+
+        print("Parameters extracted: ", params)
+        print(f'Parameter extraction took {t2-t1} seconds')
 
         with st.spinner(" Geocoding location…"):
+            print("Location geocoding started: ", params)
             bbox, bbox_name = geocode_first_bbox(params["location"])
             t3 = time.time()
-            print ("bounding box extracted is: ", bbox)
-            st.write({"bbox": bbox, "bbox_name": bbox_name})
-     
-        st.subheader("Area of Interest")
-        fmap = folium_bbox_map(bbox, bbox_name)
-        st_folium(fmap, width=900, height=500)         
+            print ("Bounding box extracted is: ", bbox)
+            st.session_state.last_bbox = bbox
+            st.session_state.last_bbox_name = bbox_name
+            st.session_state.last_params = params
+            st.session_state.current_state = "results_available"
 
-        st.session_state.last_bbox = bbox
-        st.session_state.last_bbox_name = bbox_name
-        st.session_state.last_params = params
+if (st.session_state.current_state == "results_available"):
+
+    extracted_params = st.session_state.last_params
+    extracted_bbox =  st.session_state.last_bbox
+    extracted_bbox_name =  st.session_state.last_bbox_name
+
+    with st.expander("Debug: extracted parameters", expanded=True):
+            st.json(extracted_params)
+
+    st.write({"bbox": extracted_bbox, "bbox_name": extracted_bbox_name})
+    st.subheader("Area of Interest")
+    fmap = folium_bbox_map(extracted_bbox, extracted_bbox_name)
+    st_folium(fmap, width=900, height=500)   
+
 
 
 
