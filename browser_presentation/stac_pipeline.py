@@ -11,7 +11,9 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
 # --- Endpoints ---
-BASE_URL_STAC = "https://geoservice.dlr.de/eoc/ogc/stac/v1"
+#BASE_URL_STAC = "https://geoservice.dlr.de/eoc/ogc/stac/v1"
+#BASE_URL_STAC = "https://planetarycomputer.microsoft.com/api/stac/v1"
+BASE_URL_STAC = "https://stac.dataspace.copernicus.eu/v1"
 BASE_URL_OSM = "https://nominatim.openstreetmap.org"
 
 # --- LLM factory ---
