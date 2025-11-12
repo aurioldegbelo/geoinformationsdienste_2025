@@ -63,6 +63,7 @@ if query:
         print("Parameters extracted: ", params)
         print(f'Parameter extraction took {t2-t1} seconds')
 
+        # update the session states with the new values
         with st.spinner(" Geocoding location…"):
             print("Location geocoding started: ", params)
             bbox, bbox_name = geocode_first_bbox(params["location"])
@@ -71,19 +72,24 @@ if query:
             st.session_state.last_bbox = bbox
             st.session_state.last_bbox_name = bbox_name
             st.session_state.last_params = params
-            st.session_state.current_state = "results_available"
+            st.session_state.current_state = "results_available" # state that the results are available
 
+# say what to do if the results become available
 if (st.session_state.current_state == "results_available"):
 
+    # retrieve the latest values from the session states variable
     extracted_params = st.session_state.last_params
     extracted_bbox =  st.session_state.last_bbox
     extracted_bbox_name =  st.session_state.last_bbox_name
 
+    # display the parameters extracted
     with st.expander("Debug: extracted parameters", expanded=True):
             st.json(extracted_params)
 
+    # alternative way of showing the parameters extracted
     st.write({"bbox": extracted_bbox, "bbox_name": extracted_bbox_name})
     st.subheader("Area of Interest")
+    # map create the map with the bbox and the bbox names extracted
     fmap = folium_bbox_map(extracted_bbox, extracted_bbox_name)
     st_folium(fmap, width=900, height=500)   
 
